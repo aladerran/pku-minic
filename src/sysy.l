@@ -1,6 +1,7 @@
 %option noyywrap
 %option nounput
 %option noinput
+%option yylineno
 
 %{
 
@@ -15,6 +16,7 @@ using namespace std;
 
 WhiteSpace    [ \t\n\r]*
 LineComment   "//".*
+BlockComment  "/*"([^*]|\*+[^*/])*\*+"/"
 
 Identifier    [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -26,6 +28,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 {WhiteSpace}    { }
 {LineComment}   { }
+{BlockComment}  { }
 
 "int"           { return INT; }
 "return"        { return RETURN; }

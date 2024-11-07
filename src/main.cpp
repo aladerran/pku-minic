@@ -1,9 +1,12 @@
 #include <cassert>
 #include <cstdio>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <string>
+
 #include "ast.hpp"
+#include "ir.hpp"
 
 using namespace std;
 
@@ -24,12 +27,31 @@ int main(int argc, const char *argv[]) {
   yyin = fopen(input, "r");
   assert(yyin);
 
+  // Enable Bison debug mode
+  extern int yydebug;
+  // yydebug = 1;
+
   // Call the parser function, which will in turn call the lexer to parse the input file.
   unique_ptr<BaseAST> ast;
   auto ret = yyparse(ast);
   assert(!ret);
 
-  // dump AST
+  // Dump AST
+  cout << "AST Dump: " << endl;
   ast->Dump();
   cout << endl;
+
+  // Open the output file to write the results
+  ofstream output_file(output);
+  assert(output_file && "Failed to open output file");
+
+  // Generate IR
+  ProgramIR program;
+  ast->GenerateIR(program);
+  output_file << program.GenerateIR();
+
+  // Close the output file
+  output_file.close();
+
+  return 0;
 }

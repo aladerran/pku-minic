@@ -1,3 +1,5 @@
+%debug
+
 %code requires {
   #include <memory>
   #include <string>
@@ -8,6 +10,8 @@
 #include <memory>
 #include <string>
 #include "ast.hpp"
+
+extern int yylineno;
 
 int yylex();
 void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
@@ -34,7 +38,7 @@ using namespace std;
 CompUnit
   : FuncDef {
     auto comp_unit = std::make_unique<CompUnitAST>();
-    comp_unit->func_def = std::move(*(yyvsp[0].ast_val));
+    comp_unit->func_def = std::move(*($1));
     ast = std::move(comp_unit);
   }
   ;
@@ -42,9 +46,9 @@ CompUnit
 FuncDef
   : FuncType IDENT '(' ')' Block {
     auto func_def = std::make_unique<FuncDefAST>();
-    func_def->func_type = std::move(*(yyvsp[-4].ast_val));
-    func_def->ident = *unique_ptr<string>($2);
-    func_def->block = std::move(*(yyvsp[0].ast_val));
+    func_def->func_type = std::move(*$1);
+    func_def->ident = *$2;
+    func_def->block = std::move(*$5);
     $$ = new std::unique_ptr<BaseAST>(std::move(func_def));
   }
   ;
@@ -60,7 +64,7 @@ FuncType
 Block
   : '{' Stmt '}' {
     auto block = std::make_unique<BlockAST>();
-    block->stmts.push_back(std::move(*(yyvsp[-1].ast_val)));
+    block->stmts.push_back(std::move(*$2));
     $$ = new std::unique_ptr<BaseAST>(std::move(block));
   }
   ;
@@ -68,7 +72,7 @@ Block
 Stmt
   : RETURN Number ';' {
     auto stmt = std::make_unique<StmtAST>();
-    stmt->number = std::move(*(yyvsp[-1].ast_val));
+    stmt->number = std::move(*$2);
     $$ = new std::unique_ptr<BaseAST>(std::move(stmt));
   }
   ;
@@ -83,6 +87,6 @@ Number
 
 %%
 
-void yyerror(unique_ptr<BaseAST> &ast, const char *s) {
-  cerr << "error: " << s << endl;
+void yyerror(std::unique_ptr<BaseAST> &ast, const char *s) {
+    std::cerr << "error: " << s << " at line " << yylineno << std::endl;
 }
