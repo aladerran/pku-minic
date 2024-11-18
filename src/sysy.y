@@ -31,7 +31,7 @@ using namespace std;
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef FuncType Block Stmt Number
+%type <ast_val> CompUnit FuncDef FuncType Block Stmt Number
 
 %%
 

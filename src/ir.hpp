@@ -1,3 +1,4 @@
+// ir.hpp
 #pragma once
 
 #include <vector>
@@ -5,84 +6,86 @@
 #include <memory>
 #include <iostream>
 
-
-class InstructionIR {
+// Base class: IR Node
+class IRNode {
 public:
-    virtual ~InstructionIR() = default;
-    virtual std::string GenerateIR() const = 0;
+    virtual ~IRNode() = default;
+    virtual std::string ToString() const = 0;
 };
 
+// Instruction IR
+class InstructionIR : public IRNode {
+public:
+    virtual ~InstructionIR() = default;
+};
 
+// Return instruction
 class ReturnIR : public InstructionIR {
 public:
     int value;
-    ReturnIR(int val) : value(val) {}
+    explicit ReturnIR(int val) : value(val) {}
 
-    std::string GenerateIR() const override {
+    std::string ToString() const override {
         return "    ret " + std::to_string(value) + "\n";
     }
 };
 
-
-class BasicBlockIR {
+// Basic Block IR
+class BasicBlockIR : public IRNode {
 public:
     std::string label;
     std::vector<std::unique_ptr<InstructionIR>> instructions;
 
-    BasicBlockIR(const std::string& block_label) : label(block_label) {}
+    explicit BasicBlockIR(const std::string &block_label) : label(block_label) {}
 
     void AddInstruction(std::unique_ptr<InstructionIR> instr) {
         instructions.push_back(std::move(instr));
     }
 
-    std::string GenerateIR() const {
+    std::string ToString() const override {
         std::string ir = "%" + label + ":\n";
-        for (const auto& instr : instructions) {
-            ir += instr->GenerateIR();
+        for (const auto &instr : instructions) {
+            ir += instr->ToString();
         }
         return ir;
     }
 };
 
-
-class FunctionIR {
+// Function IR
+class FunctionIR : public IRNode {
 public:
     std::string name;
     std::vector<std::unique_ptr<BasicBlockIR>> blocks;
 
-    FunctionIR(const std::string& func_name) : name(func_name) {}
+    explicit FunctionIR(const std::string &func_name) : name(func_name) {}
 
     void AddBlock(std::unique_ptr<BasicBlockIR> block) {
         blocks.push_back(std::move(block));
     }
 
-    std::string GenerateIR() const {
+    std::string ToString() const override {
         std::string ir = "fun @" + name + "(): i32 {\n";
-        for (const auto& block : blocks) {
-            ir += block->GenerateIR();
+        for (const auto &block : blocks) {
+            ir += block->ToString();
         }
         ir += "}\n";
         return ir;
     }
 };
 
-
-class GlobalVarIR {};
-
-
-class ProgramIR {
+// Program IR
+class ProgramIR : public IRNode {
 public:
     std::vector<std::unique_ptr<FunctionIR>> functions;
-    std::vector<std::unique_ptr<GlobalVarIR>> global_vars;
 
     void AddFunction(std::unique_ptr<FunctionIR> func) {
         functions.push_back(std::move(func));
     }
 
-    std::string GenerateIR() const {
+    std::string ToString() const override {
         std::string ir;
-        for (const auto& func : functions) {
-            ir += func->GenerateIR();
+        for (const auto &func : functions) {
+            ir += func->ToString();
         }
         return ir;
     }
