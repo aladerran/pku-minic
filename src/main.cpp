@@ -15,9 +15,9 @@ extern int yyparse(std::unique_ptr<BaseAST> &ast);
 int main(int argc, const char *argv[]) {
     // Parse command line arguments.
     assert(argc == 5);
-    auto mode = argv[1];
-    auto input = argv[2];
-    auto output = argv[4];
+    std::string mode = argv[1];
+    const char* input = argv[2];
+    const char* output = argv[4];
 
     // Open the input file and set it as the input for the lexer.
     yyin = fopen(input, "r");
@@ -25,7 +25,7 @@ int main(int argc, const char *argv[]) {
 
     // Call the parser function, which will in turn call the lexer to parse the input file.
     std::unique_ptr<BaseAST> ast;
-    auto ret = yyparse(ast);
+    int ret = yyparse(ast);
     assert(!ret);
 
     // Dump AST
@@ -43,11 +43,21 @@ int main(int argc, const char *argv[]) {
     std::ofstream output_file(output);
     assert(output_file && "Failed to open output file");
 
-    // Output the generated IR
-    output_file << codegenVisitor.program.ToString();
+    if (mode == "-koopa") {
+        // Output the generated IR
+        output_file << codegenVisitor.program.ToString();
+    } else if (mode == "-riscv") {
+        // Output the generated assembly code
+        output_file << codegenVisitor.program.GenerateAssembly();
+    } else {
+        std::cerr << "Invalid mode: " << mode << std::endl;
+        return 1;
+    }
 
     // Close the output file
     output_file.close();
+
+    std::cout << "Result file has been written to: " << output << std::endl;
 
     return 0;
 }

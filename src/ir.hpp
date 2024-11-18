@@ -11,6 +11,7 @@ class IRNode {
 public:
     virtual ~IRNode() = default;
     virtual std::string ToString() const = 0;
+    virtual std::string GenerateAssembly() const = 0;
 };
 
 // Instruction IR
@@ -27,6 +28,13 @@ public:
 
     std::string ToString() const override {
         return "    ret " + std::to_string(value) + "\n";
+    }
+
+    std::string GenerateAssembly() const override {
+        std::string asm_code;
+        asm_code += "    li a0, " + std::to_string(value) + "\n";
+        asm_code += "    ret\n";
+        return asm_code;
     }
 };
 
@@ -48,6 +56,15 @@ public:
             ir += instr->ToString();
         }
         return ir;
+    }
+
+    std::string GenerateAssembly() const override {
+        // std::string asm_code = "%" + label + ":\n";
+        std::string asm_code;
+        for (const auto &instr : instructions) {
+            asm_code += instr->GenerateAssembly();
+        }
+        return asm_code;
     }
 };
 
@@ -71,6 +88,17 @@ public:
         ir += "}\n";
         return ir;
     }
+
+    std::string GenerateAssembly() const override {
+        std::string asm_code;
+        asm_code += "    .text\n";
+        asm_code += "    .globl " + name + "\n";
+        asm_code += name + ":\n";
+        for (const auto &block : blocks) {
+            asm_code += block->GenerateAssembly();
+        }
+        return asm_code;
+    }
 };
 
 // Program IR
@@ -88,5 +116,14 @@ public:
             ir += func->ToString();
         }
         return ir;
+    }
+
+    std::string GenerateAssembly() const override {
+        std::string asm_code;
+        for (const auto &func : functions) {
+            asm_code += func->GenerateAssembly();
+            asm_code += "\n";
+        }
+        return asm_code;
     }
 };
