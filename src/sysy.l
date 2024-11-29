@@ -14,9 +14,9 @@ using namespace std;
 
 %}
 
-WhiteSpace    [ \t\n\r]*
+WhiteSpace    [ \t\n\r]+
 LineComment   "//".*
-BlockComment  "/*"([^*]|\*+[^*/])*\*+"/"
+BlockComment  "/\*"([^*]|\*+[^*/])*\*+"/"
 
 Identifier    [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -26,12 +26,32 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 %%
 
-{WhiteSpace}    { }
-{LineComment}   { }
-{BlockComment}  { }
+{WhiteSpace}    { /* skip whitespace */ }
+{LineComment}   { /* skip comments */ }
+{BlockComment}  { /* skip comments */ }
 
 "int"           { return INT; }
 "return"        { return RETURN; }
+
+"+"             { return PLUS; }
+"-"             { return MINUS; }
+"*"             { return MUL; }
+"/"             { return DIV; }
+"%"             { return MOD; }
+"!"             { return NOT; }
+"("             { return LPAREN; }
+")"             { return RPAREN; }
+"{"             { return LBRACE; }
+"}"             { return RBRACE; }
+";"             { return SEMI; }
+"<"             { return LT; }
+">"             { return GT; }
+"<="            { return LE; }
+">="            { return GE; }
+"=="            { return EQ; }
+"!="            { return NE; }
+"&&"            { return AND; }
+"||"            { return OR; }
 
 {Identifier}    { yylval.str_val = new string(yytext); return IDENT; }
 
@@ -42,4 +62,3 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 .               { return yytext[0]; }
 
 %%
-

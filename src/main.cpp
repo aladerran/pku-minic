@@ -1,12 +1,14 @@
+// main.cpp
 #include <cassert>
 #include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <memory>
 #include <string>
+#include <functional>
 
 #include "ast.hpp"
-#include "ir.hpp"
+#include "visitor.hpp"
 
 // Declare lexer input and parser function
 extern FILE *yyin;
@@ -48,7 +50,14 @@ int main(int argc, const char *argv[]) {
         output_file << codegenVisitor.program.ToString();
     } else if (mode == "-riscv") {
         // Output the generated assembly code
-        output_file << codegenVisitor.program.GenerateAssembly();
+
+        // Define the register mapping function
+        auto getRegisterFunc = [&](const std::string &var) -> std::string {
+            return codegenVisitor.getOperand(var);
+        };
+
+        // Pass the register mapping function to GenerateAssembly
+        output_file << codegenVisitor.program.GenerateAssembly(getRegisterFunc);
     } else {
         std::cerr << "Invalid mode: " << mode << std::endl;
         return 1;
